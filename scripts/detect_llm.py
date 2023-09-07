@@ -9,9 +9,14 @@ import torch.nn.functional as F
 import tqdm
 import argparse
 import json
-from data_builder import load_data
 from model import load_tokenizer, load_model
 from metrics import get_roc_metrics, get_precision_recall_metrics
+
+def load_data(data_file):
+    with open(data_file, "r") as fin:
+        data = json.load(fin)
+        print(f"Raw data loaded from {data_file}")
+    return data
 
 def get_likelihood(logits, labels):
     assert logits.shape[0] == 1
@@ -22,22 +27,6 @@ def get_likelihood(logits, labels):
     log_probs = torch.nn.functional.log_softmax(logits, dim=-1)
     log_likelihood = log_probs.gather(dim=-1, index=labels.unsqueeze(-1)).squeeze(-1)
     return log_likelihood.mean().item()
-
-def get_rank(logits, labels):
-    assert logits.shape[0] == 1
-    assert labels.shape[0] == 1
-
-    # get rank of each label token in the model's likelihood ordering
-    matches = (logits.argsort(-1, descending=True) == labels.unsqueeze(-1)).nonzero()
-    assert matches.shape[1] == 3, f"Expected 3 dimensions in matches tensor, got {matches.shape}"
-
-    ranks, timesteps = matches[:, -1], matches[:, -2]
-
-    # make sure we got exactly one match for each timestep in the sequence
-    assert (timesteps == torch.arange(len(timesteps)).to(timesteps.device)).all(), "Expected one match per timestep"
-
-    ranks = ranks.float() + 1 # convert to 1-indexed rank
-    return -ranks.mean().item()
 
 def get_logrank(logits, labels):
     assert logits.shape[0] == 1
@@ -54,16 +43,34 @@ def get_logrank(logits, labels):
 
     ranks = ranks.float() + 1  # convert to 1-indexed rank
     ranks = torch.log(ranks)
-    return -ranks.mean().item()
+    return ranks.mean().item()
 
-def get_entropy(logits, labels):
-    assert logits.shape[0] == 1
-    assert labels.shape[0] == 1
+# Log-Likelihood Log-Rank Ratio
+def get_lrr(args, scoring_model, scoring_tokenizer, text, perturbs):
+    with torch.no_grad():
+        tokenized = scoring_tokenizer(text, return_tensors="pt", return_token_type_ids=False).to(args.device)
+        labels = tokenized.input_ids[:, 1:]
+        logits = scoring_model(**tokenized).logits[:, :-1]
+        likelihood = get_likelihood(logits, labels)
+        logrank = get_logrank(logits, labels)
+        return - likelihood / logrank
 
-    entropy = F.softmax(logits, dim=-1) * F.log_softmax(logits, dim=-1)
-    entropy = -entropy.sum(-1)
-    return entropy.mean().item()
-
+# Normalized Log-Rank Perturbation
+def get_npr(args, scoring_model, scoring_tokenizer, text, perturbs):
+    with torch.no_grad():
+        tokenized = scoring_tokenizer(text, return_tensors="pt", return_token_type_ids=False).to(args.device)
+        labels = tokenized.input_ids[:, 1:]
+        logits = scoring_model(**tokenized).logits[:, :-1]
+        logrank = get_logrank(logits, labels)
+        # perturbations
+        logranks = []
+        for perturb in perturbs:
+            tokenized = scoring_tokenizer(perturb, return_tensors="pt", return_token_type_ids=False).to(args.device)
+            labels = tokenized.input_ids[:, 1:]
+            logits = scoring_model(**tokenized).logits[:, :-1]
+            logranks.append(get_logrank(logits, labels))
+        # npr
+        return np.mean(logranks) / logrank
 
 def experiment(args):
     # load model
@@ -72,32 +79,22 @@ def experiment(args):
     scoring_model.eval()
     # load data
     data = load_data(args.dataset_file)
-    n_samples = len(data["sampled"])
+    n_samples = data["info"]["n_samples"]
+    data = data["raw_results"]
     # eval criterions
-    criterion_fns = {'likelihood': get_likelihood,
-                     'rank': get_rank,
-                     'logrank': get_logrank,
-                     'entropy': get_entropy}
+    criterion_fns = {'lrr': get_lrr, 'npr': get_npr}
     for name in criterion_fns:
         criterion_fn = criterion_fns[name]
         torch.manual_seed(args.seed)
         np.random.seed(args.seed)
         eval_results = []
         for idx in tqdm.tqdm(range(n_samples), desc=f"Computing {name} criterion"):
-            original_text = data["original"][idx]
-            sampled_text = data["sampled"][idx]
-            # original text
-            tokenized = scoring_tokenizer(original_text, return_tensors="pt", padding=True, return_token_type_ids=False).to(args.device)
-            labels = tokenized.input_ids[:, 1:]
-            with torch.no_grad():
-                logits = scoring_model(**tokenized).logits[:, :-1]
-                original_crit = criterion_fn(logits, labels)
-            # sampled text
-            tokenized = scoring_tokenizer(sampled_text, return_tensors="pt", padding=True, return_token_type_ids=False).to(args.device)
-            labels = tokenized.input_ids[:, 1:]
-            with torch.no_grad():
-                logits = scoring_model(**tokenized).logits[:, :-1]
-                sampled_crit = criterion_fn(logits, labels)
+            original_text = data[idx]["original"]
+            sampled_text = data[idx]["sampled"]
+            perturbed_original = data[idx]["perturbed_original"]
+            perturbed_sampled = data[idx]["perturbed_sampled"]
+            original_crit = criterion_fn(args, scoring_model, scoring_tokenizer, original_text, perturbed_original)
+            sampled_crit = criterion_fn(args, scoring_model, scoring_tokenizer, sampled_text, perturbed_sampled)
             # result
             eval_results.append({"original": original_text,
                             "original_crit": original_crit,
@@ -127,7 +124,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--output_file', type=str, default="./exp_test/results/xsum_gpt2")
     parser.add_argument('--dataset', type=str, default="xsum")
-    parser.add_argument('--dataset_file', type=str, default="./exp_test/data/xsum_gpt2")
+    parser.add_argument('--dataset_file', type=str, default="./exp_test/results/xsum_gpt2.perturbation_10.json")
     parser.add_argument('--scoring_model_name', type=str, default="gpt2")
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--device', type=str, default="cuda")

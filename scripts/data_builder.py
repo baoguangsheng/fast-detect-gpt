@@ -2,6 +2,7 @@
 #
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
+import time
 
 import numpy as np
 import datasets
@@ -11,7 +12,6 @@ import argparse
 import os
 import json
 import custom_datasets
-from multiprocessing.pool import ThreadPool
 from model import load_gpt2_tokenizer, load_tokenizer, load_model
 
 
@@ -40,8 +40,6 @@ def load_data(input_file):
 class DataBuilder:
     def __init__(self, args):
         self.args = args
-        self.API_TOKEN_COUNTER = 0
-        self.GPT2_TOKENIZER = load_gpt2_tokenizer(args.cache_dir)
         self.base_tokenizer = load_tokenizer(args.base_model_name, args.dataset, args.cache_dir)
         self.base_model = None if args.openai_model else load_model(args.base_model_name, args.device, args.cache_dir)
 
@@ -52,38 +50,71 @@ class DataBuilder:
         import openai
         assert self.args.openai_key is not None, "Must provide OpenAI API key as --openai_key"
         openai.api_key = self.args.openai_key
+        if self.args.openai_base is not None:
+            openai.api_base = self.args.openai_base
 
         if self.args.dataset != 'pubmed':  # keep Answer: prefix for pubmed
             prefix = _drop_last_word(prefix)
 
         # sample from the openai model
-        kwargs = {"engine": self.args.openai_model, "max_tokens": 200}
+        kwargs = {"max_tokens": 200}
         if self.args.do_top_p:
             kwargs['top_p'] = self.args.top_p
+        elif self.args.do_top_k:
+            kwargs['top_k'] = self.args.top_k
+        elif self.args.do_temperature:
+            kwargs['temperature'] = self.args.temperature
 
-        r = openai.Completion.create(prompt=f"{prefix}", **kwargs)
-        return prefix + r['choices'][0].text
+        if self.args.openai_model == 'davinci':
+            kwargs["engine"] = self.args.openai_model
+            response = openai.Completion.create(prompt=f"{prefix}", **kwargs)
+            return prefix + response['choices'][0]['text']
+
+        elif self.args.openai_model in ['gpt-3.5-turbo', 'gpt-4']:
+            roles = {'xsum': 'You are a News writer.',
+                     'writing': 'You are a Fiction writer.',
+                     'pubmed': 'You are a Technical writer.'}
+            prompt = f'Please write an article with about 100 words starting exactly with:'
+            messages = [
+                {'role': 'system', 'content': roles[self.args.dataset]},
+                {'role': 'user', 'content': f'{prompt} {prefix}'},
+            ]
+            kwargs["model"] = self.args.openai_model
+            kwargs["messages"] = messages
+            response = openai.ChatCompletion.create(**kwargs)
+            response = response['choices'][0]['message']['content']
+            # ChatGPT may repeat the prefix
+            if response.startswith(prefix[:20]):
+                return response
+            return prefix + ' ' + response
+
+        else:
+            raise NotImplementedError
 
     # sample from base_model using ****only**** the first 30 tokens in each example as context
     def _sample_from_model(self, texts, min_words=55, prompt_tokens=30):
         # encode each text as a list of token ids
         if self.args.dataset == 'pubmed':
             texts = [t[:t.index(custom_datasets.SEPARATOR)] for t in texts]
-            all_encoded = self.base_tokenizer(texts, return_tensors="pt", padding=True).to(self.args.device)
+            all_encoded = self.base_tokenizer(texts, return_tensors="pt", padding=True, return_token_type_ids=False).to(self.args.device)
         else:
-            all_encoded = self.base_tokenizer(texts, return_tensors="pt", padding=True).to(self.args.device)
+            all_encoded = self.base_tokenizer(texts, return_tensors="pt", padding=True, return_token_type_ids=False).to(self.args.device)
             all_encoded = {key: value[:, :prompt_tokens] for key, value in all_encoded.items()}
 
         if self.args.openai_model:
             # decode the prefixes back into text
             prefixes = self.base_tokenizer.batch_decode(all_encoded['input_ids'], skip_special_tokens=True)
-            pool = ThreadPool(args.batch_size)
 
-            decoded = pool.map(self._openai_sample, prefixes)
+            decoded = []
+            for idx, prefix in enumerate(prefixes):
+                while idx >= len(decoded):
+                    try:
+                        decoded.append(self._openai_sample(prefix))
+                    except Exception as ex:
+                        print(ex)
+                        print('Wait 10 minutes before retry ...')
+                        time.sleep(600)
 
-            # count total number of tokens with GPT2_TOKENIZER
-            total_tokens = sum(len(self.GPT2_TOKENIZER.encode(x)) for x in decoded)
-            self.API_TOKEN_COUNTER += total_tokens
         else:
             self.base_model.eval()
             decoded = ['' for _ in range(len(texts))]
@@ -102,6 +133,8 @@ class DataBuilder:
                     sampling_kwargs['top_p'] = self.args.top_p
                 elif self.args.do_top_k:
                     sampling_kwargs['top_k'] = self.args.top_k
+                elif self.args.do_temperature:
+                    sampling_kwargs['temperature'] = self.args.temperature
                 min_length = 50 if self.args.dataset in ['pubmed'] else 150
                 outputs = self.base_model.generate(**all_encoded, min_length=min_length, max_length=200, do_sample=True,
                                                    **sampling_kwargs, pad_token_id=self.base_tokenizer.eos_token_id,
@@ -131,8 +164,6 @@ class DataBuilder:
                     return text
             return text[:idx]
 
-        torch.manual_seed(42)
-        np.random.seed(42)
         data = {
             "original": [],
             "sampled": [],
@@ -141,10 +172,10 @@ class DataBuilder:
         for batch in range(len(raw_data) // batch_size):
             print('Generating samples for batch', batch, 'of', len(raw_data) // batch_size)
             original_text = raw_data[batch * batch_size:(batch + 1) * batch_size]
-            sampled_text = self._sample_from_model(original_text, min_words=30 if args.dataset in ['pubmed'] else 55)
+            sampled_text = self._sample_from_model(original_text, min_words=30 if self.args.dataset in ['pubmed'] else 55)
 
             for o, s in zip(original_text, sampled_text):
-                if args.dataset == 'pubmed':
+                if self.args.dataset == 'pubmed':
                     s = _truncate_to_substring(s, 'Question:', 2)
                     o = o.replace(custom_datasets.SEPARATOR, ' ')
 
@@ -187,7 +218,6 @@ def generate_data(args, dataset, key):
         if len(long_data) > 0:
             data = long_data
 
-    random.seed(0)
     random.shuffle(data)
     data = data[:5_000]
 
@@ -205,17 +235,21 @@ def generate_data(args, dataset, key):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--output_file', type=str, default="./exp_test/data/xsum_gpt2")
+    parser.add_argument('--output_file', type=str, default="./exp_gpt3/data/xsum_gpt2")
     parser.add_argument('--dataset', type=str, default="xsum")
     parser.add_argument('--n_samples', type=int, default=200)
-    parser.add_argument('--openai_model', type=str, default=None)
-    parser.add_argument('--openai_key', type=str)
+    parser.add_argument('--openai_base', type=str, default=None)
+    parser.add_argument('--openai_key', type=str, default=None)
+    parser.add_argument('--openai_model', type=str, default=None)  # davinci, gpt-3.5-turbo, gpt-4
     parser.add_argument('--base_model_name', type=str, default="gpt2")
     parser.add_argument('--batch_size', type=int, default=50)
     parser.add_argument('--do_top_k', action='store_true')
     parser.add_argument('--top_k', type=int, default=40)
     parser.add_argument('--do_top_p', action='store_true')
     parser.add_argument('--top_p', type=float, default=0.96)
+    parser.add_argument('--do_temperature', action='store_true')
+    parser.add_argument('--temperature', type=float, default=0.7)
+    parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--device', type=str, default="cuda")
     parser.add_argument('--cache_dir', type=str, default="../cache")
     args = parser.parse_args()
@@ -225,8 +259,12 @@ if __name__ == '__main__':
         os.makedirs(args.cache_dir)
     print(f"Using cache dir {args.cache_dir}")
 
+    random.seed(args.seed)
+    torch.manual_seed(args.seed)
+    np.random.seed(args.seed)
+
     print(f'Loading dataset {args.dataset}...')
     dataset_keys = {'xsum': 'document', 'squad': 'context', 'writing': 'document'}
-    data = generate_data(args, args.dataset, dataset_keys[args.dataset])
+    data = generate_data(args, args.dataset, dataset_keys[args.dataset] if args.dataset in dataset_keys else None)
 
     save_data(args.output_file, args, data)

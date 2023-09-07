@@ -1,28 +1,24 @@
-import matplotlib.pyplot as plt
+# Copyright (c) Guangsheng Bao.
+#
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
 import numpy as np
-import datasets
 import transformers
 import re
 import torch
-import torch.nn.functional as F
 import tqdm
-import random
-from sklearn.metrics import roc_curve, precision_recall_curve, auc
 import argparse
-import datetime
-import os
 import json
-import functools
-import custom_datasets
-from multiprocessing.pool import ThreadPool
 from data_builder import load_data
 from metrics import get_roc_metrics, get_precision_recall_metrics
-from model import load_tokenizer, load_model, load_gpt2_tokenizer
+from model import load_tokenizer, load_model, get_model_fullname
 
 # define regex to match all <extra_id_*> tokens, where * is an integer
 pattern = re.compile(r"<extra_id_\d+>")
 
 def load_mask_model(model_name, device, cache_dir):
+    model_name = get_model_fullname(model_name)
     # mask filling t5 model
     int8_kwargs = {}
     half_kwargs = {}
@@ -33,6 +29,7 @@ def load_mask_model(model_name, device, cache_dir):
     return mask_model
 
 def load_mask_tokenizer(model_name, max_length, cache_dir):
+    model_name = get_model_fullname(model_name)
     tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, model_max_length=max_length,
                                                                    cache_dir=cache_dir)
     return tokenizer
@@ -141,7 +138,7 @@ def perturb_texts(args, mask_model, mask_tokenizer, texts, ceil_pct=False):
 # Get the log likelihood of each text under the base_model
 def get_ll(args, scoring_model, scoring_tokenizer, text):
     with torch.no_grad():
-        tokenized = scoring_tokenizer(text, return_tensors="pt").to(args.device)
+        tokenized = scoring_tokenizer(text, return_tensors="pt", return_token_type_ids=False).to(args.device)
         labels = tokenized.input_ids
         return -scoring_model(**tokenized, labels=labels).loss.item()
 
@@ -158,7 +155,11 @@ def experiment(args):
     scoring_model.eval()
     mask_model = load_mask_model(args.mask_filling_model_name, 'cpu', args.cache_dir)
     mask_model.eval()
-    mask_tokenizer = load_mask_tokenizer(args.mask_filling_model_name, mask_model.config.n_positions, args.cache_dir)
+    try:
+        n_positions = mask_model.config.n_positions
+    except AttributeError:
+        n_positions = 512
+    mask_tokenizer = load_mask_tokenizer(args.mask_filling_model_name, n_positions, args.cache_dir)
 
     # load data
     data = load_data(args.dataset_file)
@@ -226,6 +227,7 @@ def experiment(args):
         predictions['real'].append((res['original_ll'] - res['perturbed_original_ll']) / res['perturbed_original_ll_std'])
         predictions['samples'].append((res['sampled_ll'] - res['perturbed_sampled_ll']) / res['perturbed_sampled_ll_std'])
 
+    print(f"Real mean/std: {np.mean(predictions['real']):.2f}/{np.std(predictions['real']):.2f}, Samples mean/std: {np.mean(predictions['samples']):.2f}/{np.std(predictions['samples']):.2f}")
     fpr, tpr, roc_auc = get_roc_metrics(predictions['real'], predictions['samples'])
     p, r, pr_auc = get_precision_recall_metrics(predictions['real'], predictions['samples'])
     print(f"Criterion {name}_threshold ROC AUC: {roc_auc:.4f}, PR AUC: {pr_auc:.4f}")

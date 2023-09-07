@@ -13,10 +13,16 @@ model_fullnames = {  'gpt2': 'gpt2',
                      'opt-2.7b': 'facebook/opt-2.7b',
                      'gpt-neo-2.7B': 'EleutherAI/gpt-neo-2.7B',
                      'gpt-j-6B': 'EleutherAI/gpt-j-6B',
-                     'gpt-neox-20b': 'EleutherAI/gpt-neox-20b'}
+                     'gpt-neox-20b': 'EleutherAI/gpt-neox-20b',
+                     'mgpt': 'sberbank-ai/mGPT',
+                     'pubmedgpt': 'stanford-crfm/pubmedgpt',
+                     'mt5-xl': 'google/mt5-xl'}
+
+def get_model_fullname(model_name):
+    return model_fullnames[model_name] if model_name in model_fullnames else model_name
 
 def load_model(model_name, device, cache_dir):
-    model_name = model_fullnames[model_name]
+    model_name = get_model_fullname(model_name)
     print(f'Loading model {model_name}...')
     model_kwargs = {}
     if 'gpt-j' in model_name or 'neox' in model_name:
@@ -33,7 +39,7 @@ def load_model(model_name, device, cache_dir):
 
 
 def load_tokenizer(model_name, for_dataset, cache_dir):
-    model_name = model_fullnames[model_name]
+    model_name = get_model_fullname(model_name)
     optional_tok_kwargs = {}
     if "facebook/opt-" in model_name:
         print("Using non-fast tokenizer for OPT")
@@ -45,5 +51,7 @@ def load_tokenizer(model_name, for_dataset, cache_dir):
     return base_tokenizer
 
 def load_gpt2_tokenizer(cache_dir):
-    return transformers.GPT2Tokenizer.from_pretrained('gpt2', cache_dir=cache_dir)
+    tokenizer = transformers.GPT2Tokenizer.from_pretrained('gpt2', cache_dir=cache_dir)
+    tokenizer.pad_token_id = tokenizer.eos_token_id
+    return tokenizer
 
