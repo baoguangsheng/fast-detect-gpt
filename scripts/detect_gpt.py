@@ -2,17 +2,18 @@
 #
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
+import os.path
 
 import numpy as np
-import transformers
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 import re
 import torch
 import tqdm
 import argparse
 import json
-from data_builder import load_data
+from data_builder import load_data, save_data
 from metrics import get_roc_metrics, get_precision_recall_metrics
-from model import load_tokenizer, load_model, get_model_fullname
+from model import load_tokenizer, load_model, get_model_fullname, from_pretrained
 
 # define regex to match all <extra_id_*> tokens, where * is an integer
 pattern = re.compile(r"<extra_id_\d+>")
@@ -20,18 +21,14 @@ pattern = re.compile(r"<extra_id_\d+>")
 def load_mask_model(model_name, device, cache_dir):
     model_name = get_model_fullname(model_name)
     # mask filling t5 model
-    int8_kwargs = {}
-    half_kwargs = {}
     print(f'Loading mask filling model {model_name}...')
-    mask_model = transformers.AutoModelForSeq2SeqLM.from_pretrained(model_name, **int8_kwargs, **half_kwargs,
-                                                              cache_dir=cache_dir)
+    mask_model = from_pretrained(AutoModelForSeq2SeqLM, model_name, {}, cache_dir)
     mask_model = mask_model.to(device)
     return mask_model
 
 def load_mask_tokenizer(model_name, max_length, cache_dir):
     model_name = get_model_fullname(model_name)
-    tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, model_max_length=max_length,
-                                                                   cache_dir=cache_dir)
+    tokenizer = from_pretrained(AutoTokenizer, model_name, {'model_max_length': max_length}, cache_dir)
     return tokenizer
 
 def tokenize_and_mask(text, span_length, pct, ceil_pct=False):
@@ -146,14 +143,11 @@ def get_lls(args, scoring_model, scoring_tokenizer, texts):
     return [get_ll(args, scoring_model, scoring_tokenizer, text) for text in texts]
 
 
-def experiment(args):
+def generate_perturbs(args):
     n_perturbations = args.n_perturbations
     name = f'perturbation_{n_perturbations}'
     # load model
-    scoring_tokenizer = load_tokenizer(args.scoring_model_name, args.dataset, args.cache_dir)
-    scoring_model = load_model(args.scoring_model_name, 'cpu', args.cache_dir)
-    scoring_model.eval()
-    mask_model = load_mask_model(args.mask_filling_model_name, 'cpu', args.cache_dir)
+    mask_model = load_mask_model(args.mask_filling_model_name, args.device, args.cache_dir)
     mask_model.eval()
     try:
         n_positions = mask_model.config.n_positions
@@ -169,8 +163,7 @@ def experiment(args):
     np.random.seed(args.seed)
 
     # generate perturb samples
-    mask_model.to(args.device)
-    results = []
+    perturbs = []
     for idx in tqdm.tqdm(range(n_samples), desc=f"Perturb text"):
         original_text = data["original"][idx]
         sampled_text = data["sampled"][idx]
@@ -180,16 +173,38 @@ def experiment(args):
         assert len(p_sampled_text) == n_perturbations, f"Expected {n_perturbations} perturbed samples, got {len(p_sampled_text)}"
         assert len(p_original_text) == n_perturbations, f"Expected {n_perturbations} perturbed samples, got {len(p_original_text)}"
         # result
-        results.append({
+        perturbs.append({
             "original": original_text,
             "sampled": sampled_text,
             "perturbed_sampled": p_sampled_text,
             "perturbed_original": p_original_text
         })
 
-    # Evaluate
-    mask_model.cpu()
+    save_data(f'{args.dataset_file}.{args.mask_filling_model_name}.{name}', args, perturbs)
+
+
+def experiment(args):
+    n_perturbations = args.n_perturbations
+    name = f'perturbation_{n_perturbations}'
+    perturb_file = f'{args.dataset_file}.{args.mask_filling_model_name}.{name}.raw_data.json'
+    if os.path.exists(perturb_file):
+        print(f'Use existing perturbation file: {perturb_file}')
+    else:
+        generate_perturbs(args)
+    # load model
+    scoring_tokenizer = load_tokenizer(args.scoring_model_name, args.dataset, args.cache_dir)
+    scoring_model = load_model(args.scoring_model_name, 'cpu', args.cache_dir)
+    scoring_model.eval()
     scoring_model.to(args.device)
+    # load data
+    data = load_data(f'{args.dataset_file}.{args.mask_filling_model_name}.{name}')
+    n_samples = len(data)
+
+    torch.manual_seed(args.seed)
+    np.random.seed(args.seed)
+
+    # Evaluate
+    results = data
     for idx in tqdm.tqdm(range(n_samples), desc=f"Computing {name} criterion"):
         original_text = results[idx]["original"]
         sampled_text = results[idx]["sampled"]

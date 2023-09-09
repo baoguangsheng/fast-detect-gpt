@@ -124,7 +124,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--output_file', type=str, default="./exp_test/results/xsum_gpt2")
     parser.add_argument('--dataset', type=str, default="xsum")
-    parser.add_argument('--dataset_file', type=str, default="./exp_test/results/xsum_gpt2.perturbation_10.json")
+    parser.add_argument('--dataset_file', type=str, default="./exp_test/results/xsum_gpt2.perturbation_10")
     parser.add_argument('--scoring_model_name', type=str, default="gpt2")
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--device', type=str, default="cuda")

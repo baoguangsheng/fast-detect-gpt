@@ -5,18 +5,19 @@
 
 import numpy as np
 import torch
-import transformers
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 import tqdm
 import argparse
 import json
 from data_builder import load_data
 from metrics import get_roc_metrics, get_precision_recall_metrics
+from model import from_pretrained
 
 def experiment(args):
     # load model
     print(f'Beginning supervised evaluation with {args.model_name}...')
-    detector = transformers.AutoModelForSequenceClassification.from_pretrained(args.model_name, cache_dir=args.cache_dir).to(args.device)
-    tokenizer = transformers.AutoTokenizer.from_pretrained(args.model_name, cache_dir=args.cache_dir)
+    detector = from_pretrained(AutoModelForSequenceClassification, args.model_name, {}, args.cache_dir).to(args.device)
+    tokenizer = from_pretrained(AutoTokenizer, args.model_name, {}, args.cache_dir)
     detector.eval()
     # load data
     data = load_data(args.dataset_file)

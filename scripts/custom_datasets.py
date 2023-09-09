@@ -1,3 +1,4 @@
+import os.path
 import random
 import datasets
 
@@ -6,9 +7,17 @@ SEPARATOR = '<<<SEP>>>'
 
 DATASETS = ['writing', 'english', 'german', 'pubmed']
 
+def load_dataset(path, name=None, split=None, cache_dir=None):
+    local_path = os.path.join(cache_dir, f'local.{path}_{name}_{split}')
+    try:
+        data = datasets.load_from_disk(local_path)
+    except:
+        data = datasets.load_dataset(path, name, split=split, cache_dir=cache_dir)
+        data.save_to_disk(local_path)
+    return data
 
 def load_pubmed(cache_dir):
-    data = datasets.load_dataset('pubmed_qa', 'pqa_labeled', split='train', cache_dir=cache_dir)
+    data = load_dataset('pubmed_qa', 'pqa_labeled', split='train', cache_dir=cache_dir)
     
     # combine question and long_answer
     data = [f'Question: {q} Answer:{SEPARATOR}{a}' for q, a in zip(data['question'], data['long_answer'])]
@@ -65,7 +74,7 @@ def load_writing(cache_dir=None):
 def load_language(language, cache_dir):
     # load either the english or german portion of the wmt16 dataset
     assert language in ['en', 'de']
-    d = datasets.load_dataset('wmt16', 'de-en', split='train', cache_dir=cache_dir)
+    d = load_dataset('wmt16', 'de-en', split='train', cache_dir=cache_dir)
     docs = d['translation']
     desired_language_docs = [d[language] for d in docs]
     lens = [len(d.split()) for d in desired_language_docs]

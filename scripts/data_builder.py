@@ -12,7 +12,7 @@ import argparse
 import os
 import json
 import custom_datasets
-from model import load_gpt2_tokenizer, load_tokenizer, load_model
+from model import load_tokenizer, load_model
 
 
 def save_data(output_file, args, data):
@@ -74,10 +74,12 @@ class DataBuilder:
             roles = {'xsum': 'You are a News writer.',
                      'writing': 'You are a Fiction writer.',
                      'pubmed': 'You are a Technical writer.'}
-            prompt = f'Please write an article with about 100 words starting exactly with:'
+            prompts = {'xsum': 'Please write an article with about 150 words starting exactly with:',
+                       'writing': 'Please write an article with about 150 words starting exactly with:',
+                       'pubmed': 'Please answer the question in about 50 words.'}
             messages = [
                 {'role': 'system', 'content': roles[self.args.dataset]},
-                {'role': 'user', 'content': f'{prompt} {prefix}'},
+                {'role': 'user', 'content': f'{prompts[self.args.dataset]} {prefix}'},
             ]
             kwargs["model"] = self.args.openai_model
             kwargs["messages"] = messages
@@ -196,7 +198,7 @@ def generate_data(args, dataset, key):
     if dataset in custom_datasets.DATASETS:
         data = custom_datasets.load(dataset, args.cache_dir)
     else:
-        data = datasets.load_dataset(dataset, split='train', cache_dir=args.cache_dir)[key]
+        data = custom_datasets.load_dataset(dataset, split='train', cache_dir=args.cache_dir)[key]
 
     # get unique examples, strip whitespace, and remove newlines
     # then take just the long examples, shuffle, take the first 5,000 to tokenize to save time
