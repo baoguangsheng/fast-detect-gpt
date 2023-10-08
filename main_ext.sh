@@ -9,13 +9,13 @@ echo `date`, Setup the environment ...
 set -e  # exit if error
 
 # prepare folders
-exp_path=exp_main
+exp_path=exp_main_ext
 data_path=$exp_path/data
 res_path=$exp_path/results
 mkdir -p $exp_path $data_path $res_path
 
 datasets="xsum squad writing"
-source_models="gpt2-xl opt-2.7b gpt-neo-2.7B gpt-j-6B gpt-neox-20b"
+source_models="bloom-7b1 opt-13b llama-13b llama2-13b"
 
 # preparing dataset
 for D in $datasets; do
@@ -24,6 +24,7 @@ for D in $datasets; do
     python scripts/data_builder.py --dataset $D --n_samples 500 --base_model_name $M --output_file $data_path/${D}_${M}
   done
 done
+exit
 
 # White-box Setting
 echo `date`, Evaluate models in the white-box setting:

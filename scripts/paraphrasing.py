@@ -91,7 +91,7 @@ if __name__ == '__main__':
     parser.add_argument('--dataset', type=str, default="xsum")
     parser.add_argument('--dataset_file', type=str, default="./exp_test/data/xsum_gpt2")
     parser.add_argument('--t5_model_name', type=str, default="Vamsi/T5_Paraphrase_Paws")
-    parser.add_argument('--do_random_para', action='store_true')
+    parser.add_argument('--paraphraser', type=str, default="t5", choices=["t5", "random"])
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--device', type=str, default="cuda")
     parser.add_argument('--cache_dir', type=str, default="../cache")

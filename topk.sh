@@ -9,7 +9,7 @@ echo `date`, Setup the environment ...
 set -e  # exit if error
 
 # prepare folders
-exp_path=exp_main
+exp_path=exp_topk
 data_path=$exp_path/data
 res_path=$exp_path/results
 mkdir -p $exp_path $data_path $res_path
@@ -20,8 +20,8 @@ source_models="gpt2-xl opt-2.7b gpt-neo-2.7B gpt-j-6B gpt-neox-20b"
 # preparing dataset
 for D in $datasets; do
   for M in $source_models; do
-    echo `date`, Preparing dataset ${D}_${M} ...
-    python scripts/data_builder.py --dataset $D --n_samples 500 --base_model_name $M --output_file $data_path/${D}_${M}
+    echo `date`, Preparing dataset ${D}-${M} ...
+    python scripts/data_builder.py --dataset $D --n_samples 500 --do_top_k --base_model_name $M --output_file $data_path/${D}_${M}
   done
 done
 
