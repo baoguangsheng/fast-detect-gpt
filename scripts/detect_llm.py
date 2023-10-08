@@ -11,12 +11,7 @@ import argparse
 import json
 from model import load_tokenizer, load_model
 from metrics import get_roc_metrics, get_precision_recall_metrics
-
-def load_data(data_file):
-    with open(data_file, "r") as fin:
-        data = json.load(fin)
-        print(f"Raw data loaded from {data_file}")
-    return data
+from data_builder import load_data
 
 def get_likelihood(logits, labels):
     assert logits.shape[0] == 1
@@ -79,8 +74,7 @@ def experiment(args):
     scoring_model.eval()
     # load data
     data = load_data(args.dataset_file)
-    n_samples = data["info"]["n_samples"]
-    data = data["raw_results"]
+    n_samples = len(data)
     # eval criterions
     criterion_fns = {'lrr': get_lrr, 'npr': get_npr}
     for name in criterion_fns:

@@ -1,0 +1,8 @@
+torch
+numpy
+transformers==4.28.1
+datasets==2.12.0
+matplotlib
+tqdm
+openai
+nltk

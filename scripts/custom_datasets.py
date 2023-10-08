@@ -11,7 +11,8 @@ def load_dataset(path, name=None, split=None, cache_dir=None):
     local_path = os.path.join(cache_dir, f'local.{path}_{name}_{split}')
     try:
         data = datasets.load_from_disk(local_path)
-    except:
+    except Exception as ex:
+        print(ex)
         data = datasets.load_dataset(path, name, split=split, cache_dir=cache_dir)
         data.save_to_disk(local_path)
     return data

@@ -129,6 +129,10 @@ class DataBuilder:
                 if tries != 0:
                     print()
                     print(f"min words: {m}, needed {min_words}, regenerating (try {tries})")
+                    prefixes = self.base_tokenizer.batch_decode(all_encoded['input_ids'], skip_special_tokens=True)
+                    for prefix, x in zip(prefixes, decoded):
+                        if len(x.split()) == m:
+                            print(prefix, '=>', x)
 
                 sampling_kwargs = {}
                 if self.args.do_top_p:
@@ -250,7 +254,7 @@ if __name__ == '__main__':
     parser.add_argument('--do_top_p', action='store_true')
     parser.add_argument('--top_p', type=float, default=0.96)
     parser.add_argument('--do_temperature', action='store_true')
-    parser.add_argument('--temperature', type=float, default=0.7)
+    parser.add_argument('--temperature', type=float, default=0.8)
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--device', type=str, default="cuda")
     parser.add_argument('--cache_dir', type=str, default="../cache")
