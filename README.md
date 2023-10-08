@@ -1,2 +1,3 @@
-# fast-detect-gpt
-Fast DetectGPT.
+# Fast-DetectGPT: Efficient Zero-Shot Detection of Machine-Generated Text via Conditional Probability Curvature 
+
+Updating ...
