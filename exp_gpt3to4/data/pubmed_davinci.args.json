@@ -1,0 +1,15 @@
+{
+    "output_file": "exp_gpt3/data/pubmed_davinci",
+    "dataset": "pubmed",
+    "n_samples": 150,
+    "openai_model": "davinci",
+    "openai_key": "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",
+    "base_model_name": "gpt2",
+    "batch_size": 1,
+    "do_top_k": false,
+    "top_k": 40,
+    "do_top_p": true,
+    "top_p": 0.9,
+    "device": "cpu",
+    "cache_dir": "../cache"
+}
