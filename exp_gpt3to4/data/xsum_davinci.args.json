@@ -1,9 +1,9 @@
 {
-    "output_file": "exp_gpt3/data/xsum_davinci",
+    "output_file": "exp_gpt3to4/data/xsum_davinci",
     "dataset": "xsum",
     "n_samples": 150,
     "openai_model": "davinci",
-    "openai_key": "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",
+    "openai_key": "xxxx",
     "base_model_name": "gpt2",
     "batch_size": 1,
     "do_top_k": false,

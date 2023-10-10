@@ -1,9 +1,9 @@
 {
-    "output_file": "exp_gpt3to4/data_T0.8/pubmed_gpt-4",
+    "output_file": "exp_gpt3to4/data/pubmed_gpt-4",
     "dataset": "pubmed",
     "n_samples": 150,
-    "openai_base": "https://api.pro365.top/v1",
-    "openai_key": "sk-iRcxpWqjTTpGLRQB446764F544D344329e86609f71E0C078",
+    "openai_base": null,
+    "openai_key": "xxxx",
     "openai_model": "gpt-4",
     "base_model_name": "gpt2",
     "batch_size": 1,
