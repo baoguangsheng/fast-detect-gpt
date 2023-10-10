@@ -1,0 +1,19 @@
+{
+    "output_file": "exp_main/data/xsum_gpt-j-6B",
+    "dataset": "xsum",
+    "n_samples": 500,
+    "openai_base": null,
+    "openai_key": null,
+    "openai_model": null,
+    "base_model_name": "gpt-j-6B",
+    "batch_size": 50,
+    "do_top_k": false,
+    "top_k": 40,
+    "do_top_p": false,
+    "top_p": 0.96,
+    "do_temperature": false,
+    "temperature": 0.7,
+    "seed": 0,
+    "device": "cuda",
+    "cache_dir": "../cache"
+}
