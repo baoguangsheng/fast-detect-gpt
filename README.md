@@ -43,7 +43,7 @@ Following folders are created for our experiments:
 * ./exp_main -> experiments for 5-model generations (main.sh).
 * ./exp_gpt3to4 -> experiments for GPT-3, ChatGPT, and GPT-4 generations (gpt3to4.sh).
 
-(Notes: we put our generated test sets in */data for reference.)
+(Notes: we share <b>generations from GPT-3, ChatGPT, and GPT-4</b> in exp_gpt3to4/data for convenient reproduction.)
 
 ### Citation
 If you find this work useful, you can cite it with the following BibTex entry:
