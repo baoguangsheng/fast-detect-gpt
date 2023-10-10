@@ -1,3 +1,58 @@
-# Fast-DetectGPT: Efficient Zero-Shot Detection of Machine-Generated Text via Conditional Probability Curvature 
+# Fast-DetectGPT
+**This code is for our long paper "Fast-DetectGPT: Efficient Zero-Shot Detection of Machine-Generated Text via Conditional Probability Curvature".**
 
-Updating ...
+[Paper](https://arxiv.org/abs/2310.05130) 
+| Demo
+
+
+## Brief Intro
+<table class="tg"  style="padding-left: 30px;">
+  <tr>
+    <th class="tg-0pky">Method</th>
+    <th class="tg-0pky">5-Model Generations ↑</th>
+    <th class="tg-0pky">ChatGPT/GPT-4 Generations ↑</th>
+    <th class="tg-0pky">Speedup ↑</th>
+  </tr>
+  <tr>
+    <td class="tg-0pky">DetectGPT</td>
+    <td class="tg-0pky">0.9554</td>
+    <td class="tg-0pky">0.7225</td>
+    <td class="tg-0pky">1x</td>
+  </tr>
+  <tr>
+    <td class="tg-0pky">Fast-DetectGPT</td>
+    <td class="tg-0pky">0.9887 (relative↑ 74.7%)</td>
+    <td class="tg-0pky">0.9338 (relative↑ 76.1%)</td>
+    <td class="tg-0pky">340x</td>
+  </tr>
+</table>
+The table shows detection accuracy (measured in AUROC) and computational speedup for machine-generated text detection. The <b>white-box setting</b> (directly using the source model) is used for detecting generations produced by five source models (5-model), whereas the <b>black-box
+setting</b> (utilizing surrogate models) targets ChatGPT and GPT-4 generations. AUROC results are averaged across various datasets and source models. Speedup assessments were conducted on a Tesla A100 GPU.
+
+
+## Environment
+* Python3.8
+* PyTorch1.10.0
+* Setup the environment:
+  ```bash setup.sh```
+  
+(Notes: our experiments are run on 1 GPU of Tesla A100 with 80G memories.)
+
+## Workspace
+Following folders are created for our experiments:
+* ./exp_main -> experiments for 5-model generations (main.sh).
+* ./exp_gpt3to4 -> experiments for GPT-3, ChatGPT, and GPT-4 generations (gpt3to4.sh).
+
+(Notes: we put our generated test sets in */data for reference.)
+
+### Citation
+If you find this work useful, you can cite it with the following BibTex entry:
+
+    @misc{bao2023fast,
+        url = {https://arxiv.org/abs/2310.05130},
+        author = {Bao, Guangsheng and Zhao, Yanbin and Teng, Zhiyang and Yang, Linyi and Zhang, Yue},
+        title = {Fast-DetectGPT: Efficient Zero-Shot Detection of Machine-Generated Text via Conditional Probability Curvature},
+        publisher = {arXiv},
+        year = {2023},
+    }
+
