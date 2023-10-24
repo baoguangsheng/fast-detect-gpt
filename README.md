@@ -2,7 +2,7 @@
 **This code is for our long paper "Fast-DetectGPT: Efficient Zero-Shot Detection of Machine-Generated Text via Conditional Probability Curvature".**
 
 [Paper](https://arxiv.org/abs/2310.05130) 
-| Demo
+| [Demo](#local-demo)
 
 
 ## Brief Intro
@@ -21,9 +21,9 @@
   </tr>
   <tr>
     <td class="tg-0pky">Fast-DetectGPT</td>
-    <td class="tg-0pky">0.9887 (relative↑ 74.7%)</td>
-    <td class="tg-0pky">0.9338 (relative↑ 76.1%)</td>
-    <td class="tg-0pky">340x</td>
+    <td class="tg-0pky">0.9887 (relative↑ <b>74.7%</b>)</td>
+    <td class="tg-0pky">0.9338 (relative↑ <b>76.1%</b>)</td>
+    <td class="tg-0pky"><b>340x</b></td>
   </tr>
 </table>
 The table shows detection accuracy (measured in AUROC) and computational speedup for machine-generated text detection. The <b>white-box setting</b> (directly using the source model) is used for detecting generations produced by five source models (5-model), whereas the <b>black-box
@@ -36,7 +36,21 @@ setting</b> (utilizing surrogate models) targets ChatGPT and GPT-4 generations. 
 * Setup the environment:
   ```bash setup.sh```
   
-(Notes: our experiments are run on 1 GPU of Tesla A100 with 80G memories.)
+(Notes: our experiments are run on 1 GPU of Tesla A100 with 80G memory.)
+
+## Local Demo
+Please run following command locally for an interactive demo:
+```
+python scripts/local_infer.py
+```
+
+An example looks like
+```
+Please enter your text: (Press Enter twice to start processing)
+Disguised as police, they broke through a fence on Monday evening and broke into the cargo of a Swiss-bound plane to take the valuable items. The audacious heist occurred at an airport in a small European country, leaving authorities baffled and airline officials in shock.
+
+Fast-DetectGPT criterion is 1.9299, suggesting that the text has a probability of 87% to be fake.
+```
 
 ## Workspace
 Following folders are created for our experiments:
