@@ -77,6 +77,18 @@ for M in $source_models; do
   done
 done
 
+# evaluate DNA-GPT
+scoring_models="gpt-neo-2.7B"
+for M in $source_models; do
+  for D in $datasets; do
+    for M2 in $scoring_models; do
+      echo `date`, Evaluating DNA-GPT on ${D}_${M}.${M2} ...
+      python scripts/dna_gpt.py --base_model_name ${M2} --dataset $D \
+                            --dataset_file $data_path/${D}_${M} --output_file $res_path/${D}_${M}.${M2}
+    done
+  done
+done
+
 # evaluate DetectGPT and DetectLLM
 scoring_models="gpt2-xl gpt-neo-2.7B gpt-j-6B"
 for M in $source_models; do
@@ -91,5 +103,14 @@ for M in $source_models; do
       python scripts/detect_llm.py --scoring_model_name ${M2} --dataset $D \
                           --dataset_file $data_path/${D}_${M}.${M1}.perturbation_100 --output_file $res_path/${D}_${M}.${M1}_${M2}
     done
+  done
+done
+
+# evaluate GPTZero
+for M in $source_models; do
+  for D in $datasets; do
+    echo `date`, Evaluating GPTZero on ${D}_${M} ...
+    python scripts/gptzero.py --dataset $D \
+                          --dataset_file $data_path/${D}_${M} --output_file $res_path/${D}_${M}
   done
 done

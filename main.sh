@@ -44,7 +44,7 @@ done
 # evaluate DNA-GPT
 for D in $datasets; do
   for M in $source_models; do
-    echo `date`, Evaluating baseline methods on ${D}_${M} ...
+    echo `date`, Evaluating DNA-GPT on ${D}_${M} ...
     python scripts/dna_gpt.py --base_model_name $M --dataset $D \
                           --dataset_file $data_path/${D}_${M} --output_file $res_path/${D}_${M}
   done
