@@ -9,14 +9,7 @@ import time
 import os
 
 def from_pretrained(cls, model_name, kwargs, cache_dir):
-    local_path = os.path.join(cache_dir, 'local.' + model_name.replace("/", "_"))
-    try:
-        obj = cls.from_pretrained(local_path, **kwargs)
-    except Exception as ex:
-        print(ex)
-        obj = cls.from_pretrained(model_name, **kwargs, cache_dir=cache_dir)
-        obj.save_pretrained(local_path)
-    return obj
+    return cls.from_pretrained(model_name, **kwargs, cache_dir=cache_dir)
 
 # predefined models
 model_fullnames = {  'gpt2': 'gpt2',
