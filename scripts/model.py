@@ -9,6 +9,10 @@ import time
 import os
 
 def from_pretrained(cls, model_name, kwargs, cache_dir):
+    # use local model if it exists
+    local_path = os.path.join(cache_dir, 'local.' + model_name.replace("/", "_"))
+    if os.path.exist(local_path):
+        return cls.from_pretrained(local_path, **kwargs)
     return cls.from_pretrained(model_name, **kwargs, cache_dir=cache_dir)
 
 # predefined models
