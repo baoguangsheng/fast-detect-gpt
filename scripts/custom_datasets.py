@@ -8,14 +8,11 @@ SEPARATOR = '<<<SEP>>>'
 DATASETS = ['writing', 'english', 'german', 'pubmed']
 
 def load_dataset(path, name=None, split=None, cache_dir=None):
+    # use local model if it exists
     local_path = os.path.join(cache_dir, f'local.{path}_{name}_{split}')
-    try:
-        data = datasets.load_from_disk(local_path)
-    except Exception as ex:
-        print(ex)
-        data = datasets.load_dataset(path, name, split=split, cache_dir=cache_dir)
-        data.save_to_disk(local_path)
-    return data
+    if os.path.exists(local_path):
+        return datasets.load_from_disk(local_path)
+    return datasets.load_dataset(path, name, split=split, cache_dir=cache_dir)
 
 def load_pubmed(cache_dir):
     data = load_dataset('pubmed_qa', 'pqa_labeled', split='train', cache_dir=cache_dir)
