@@ -79,7 +79,7 @@ def run(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--reference_model_name', type=str, default="gpt-j-6B")
+    parser.add_argument('--reference_model_name', type=str, default="gpt-neo-2.7B")  # use gpt-j-6B for more accurate detection
     parser.add_argument('--scoring_model_name', type=str, default="gpt-neo-2.7B")
     parser.add_argument('--dataset', type=str, default="xsum")
     parser.add_argument('--ref_path', type=str, default="./local_infer_ref")
