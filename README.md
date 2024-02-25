@@ -1,5 +1,5 @@
 # Fast-DetectGPT
-**This code is for ICLR2024 long paper "Fast-DetectGPT: Efficient Zero-Shot Detection of Machine-Generated Text via Conditional Probability Curvature"**, where we borrow or extend some code from [DetectGPT](https://github.com/eric-mitchell/detect-gpt).
+**This code is for ICLR 2024 paper "Fast-DetectGPT: Efficient Zero-Shot Detection of Machine-Generated Text via Conditional Probability Curvature"**, where we borrow or extend some code from [DetectGPT](https://github.com/eric-mitchell/detect-gpt).
 
 [Paper](https://arxiv.org/abs/2310.05130) 
 | [Demo](#local-demo)
