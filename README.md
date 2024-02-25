@@ -63,11 +63,10 @@ Following folders are created for our experiments:
 ### Citation
 If you find this work useful, you can cite it with the following BibTex entry:
 
-    @misc{bao2023fast,
-        url = {https://arxiv.org/abs/2310.05130},
-        author = {Bao, Guangsheng and Zhao, Yanbin and Teng, Zhiyang and Yang, Linyi and Zhang, Yue},
-        title = {Fast-DetectGPT: Efficient Zero-Shot Detection of Machine-Generated Text via Conditional Probability Curvature},
-        publisher = {arXiv},
-        year = {2023},
+    @inproceedings{bao2023fast,
+      title={Fast-DetectGPT: Efficient Zero-Shot Detection of Machine-Generated Text via Conditional Probability Curvature},
+      author={Bao, Guangsheng and Zhao, Yanbin and Teng, Zhiyang and Yang, Linyi and Zhang, Yue},
+      booktitle={The Twelfth International Conference on Learning Representations},
+      year={2023}
     }
 
