@@ -2,7 +2,7 @@
 **This code is for ICLR 2024 paper "Fast-DetectGPT: Efficient Zero-Shot Detection of Machine-Generated Text via Conditional Probability Curvature"**, where we borrow or extend some code from [DetectGPT](https://github.com/eric-mitchell/detect-gpt).
 
 [Paper](https://arxiv.org/abs/2310.05130) 
-| [Demo](#local-demo)
+| [LocalDemo](#local-demo)
 | [OpenReview](https://openreview.net/forum?id=Bpcgcr8E8Z)
 
 
@@ -44,8 +44,15 @@ Please run following command locally for an interactive demo:
 ```
 python scripts/local_infer.py
 ```
+where the default reference model is gpt-neo-2.7B.
 
-An example looks like
+Or we could use gpt-j-6B for a more accurate detection:
+```
+python scripts/local_infer.py  --reference_model_name gpt-j-6B
+```
+
+
+An example using gpt-j-6B as the reference model looks like
 ```
 Please enter your text: (Press Enter twice to start processing)
 Disguised as police, they broke through a fence on Monday evening and broke into the cargo of a Swiss-bound plane to take the valuable items. The audacious heist occurred at an airport in a small European country, leaving authorities baffled and airline officials in shock.
