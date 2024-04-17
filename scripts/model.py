@@ -29,6 +29,7 @@ model_fullnames = {  'gpt2': 'gpt2',
                      'llama2-13b': 'TheBloke/Llama-2-13B-fp16',
                      'bloom-7b1': 'bigscience/bloom-7b1',
                      'opt-13b': 'facebook/opt-13b',
+                     'vicuna-7b-v1.5':'lmsys/vicuna-7b-v1.5'
                      }
 float16_models = ['gpt-j-6B', 'gpt-neox-20b', 'llama-13b', 'llama2-13b', 'bloom-7b1', 'opt-13b']
 
