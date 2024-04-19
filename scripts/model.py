@@ -29,9 +29,10 @@ model_fullnames = {  'gpt2': 'gpt2',
                      'llama2-13b': 'TheBloke/Llama-2-13B-fp16',
                      'bloom-7b1': 'bigscience/bloom-7b1',
                      'opt-13b': 'facebook/opt-13b',
-                     'vicuna-7b-v1.5':'lmsys/vicuna-7b-v1.5'
+                     'vicuna-7b-v1.5':'lmsys/vicuna-7b-v1.5',
+                     'llama2-7b': "meta-llama/Llama-2-7b-hf"
                      }
-float16_models = ['gpt-j-6B', 'gpt-neox-20b', 'llama-13b', 'llama2-13b', 'bloom-7b1', 'opt-13b']
+float16_models = ['gpt-j-6B', 'gpt-neox-20b', 'llama-13b', 'llama2-13b', 'bloom-7b1', 'opt-13b', 'llama2-7b', 'vicuna-7b-v1.5']
 
 def get_model_fullname(model_name):
     return model_fullnames[model_name] if model_name in model_fullnames else model_name

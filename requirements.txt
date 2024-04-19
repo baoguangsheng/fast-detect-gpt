@@ -6,3 +6,6 @@ matplotlib
 tqdm
 openai
 nltk
+scikit-learn
+sentencepiece
+protobuf==3.20.1

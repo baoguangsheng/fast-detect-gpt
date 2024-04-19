@@ -13,13 +13,13 @@ mkdir -p $exp_path $data_path $res_path
 datasets="xsum writing pubmed"
 source_models="davinci gpt-3.5-turbo gpt-4"
 
-export CUDA_VISIBLE_DEVICES=0
+export CUDA_VISIBLE_DEVICES=4
 
 # settings="gpt-j-6B:gpt2-xl gpt-j-6B:gpt-neo-2.7B gpt-j-6B:gpt-j-6B"
 
 # settings="gpt-j-6B:gpt-neo-2.7B"
-settings="vicuna-7b-v1.5:vicuna-7b-v1.5"
-# settings="llama2-7b:vicuna-7b-v1.5"
+# settings="vicuna-7b-v1.5:vicuna-7b-v1.5"
+settings="llama2-7b:llama2-7b llama2-7b:vicuna-7b-v1.5 vicuna-7b-v1.5:vicuna-7b-v1.5"
 for M in $source_models; do
   for D in $datasets; do
     for S in $settings; do
