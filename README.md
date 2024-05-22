@@ -45,15 +45,15 @@ Please run following command locally for an interactive demo:
 ```
 python scripts/local_infer.py
 ```
-where the default reference model is gpt-neo-2.7B.
+where the default reference and sampling models are both gpt-neo-2.7B.
 
-Or we could use gpt-j-6B for a more accurate detection:
+We could use gpt-j-6B as the reference model to obtain more accurate detections:
 ```
 python scripts/local_infer.py  --reference_model_name gpt-j-6B
 ```
 
 
-An example (using gpt-j-6B) looks like
+An example (using gpt-j-6B as the reference model) looks like
 ```
 Please enter your text: (Press Enter twice to start processing)
 Disguised as police, they broke through a fence on Monday evening and broke into the cargo of a Swiss-bound plane to take the valuable items. The audacious heist occurred at an airport in a small European country, leaving authorities baffled and airline officials in shock.
