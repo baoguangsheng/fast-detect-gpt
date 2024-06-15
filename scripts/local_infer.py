@@ -74,7 +74,7 @@ def run(args):
             crit = criterion_fn(logits_ref, logits_score, labels)
         # estimate the probability of machine generated text
         prob = prob_estimator.crit_to_prob(crit)
-        print(f'Fast-DetectGPT criterion is {crit:.4f}, suggesting that the text has a probability of {prob * 100:.0f}% to be fake.')
+        print(f'Fast-DetectGPT criterion is {crit:.4f}, suggesting that the text has a probability of {prob * 100:.0f}% to be machine-generated.')
         print()
 
 if __name__ == '__main__':
