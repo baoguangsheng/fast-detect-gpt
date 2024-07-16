@@ -61,14 +61,14 @@ def run(args):
         if len(text) == 0:
             break
         # evaluate text
-        tokenized = scoring_tokenizer(text, return_tensors="pt", padding=True, return_token_type_ids=False).to(args.device)
+        tokenized = scoring_tokenizer(text, truncation=True, return_tensors="pt", padding=True, return_token_type_ids=False).to(args.device)
         labels = tokenized.input_ids[:, 1:]
         with torch.no_grad():
             logits_score = scoring_model(**tokenized).logits[:, :-1]
             if args.reference_model_name == args.scoring_model_name:
                 logits_ref = logits_score
             else:
-                tokenized = reference_tokenizer(text, return_tensors="pt", padding=True, return_token_type_ids=False).to(args.device)
+                tokenized = reference_tokenizer(text, truncation=True, return_tensors="pt", padding=True, return_token_type_ids=False).to(args.device)
                 assert torch.all(tokenized.input_ids[:, 1:] == labels), "Tokenizer is mismatch."
                 logits_ref = reference_model(**tokenized).logits[:, :-1]
             crit = criterion_fn(logits_ref, logits_score, labels)
