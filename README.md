@@ -58,7 +58,7 @@ An example (using gpt-j-6B as the reference model) looks like
 Please enter your text: (Press Enter twice to start processing)
 Disguised as police, they broke through a fence on Monday evening and broke into the cargo of a Swiss-bound plane to take the valuable items. The audacious heist occurred at an airport in a small European country, leaving authorities baffled and airline officials in shock.
 
-Fast-DetectGPT criterion is 1.9299, suggesting that the text has a probability of 87% to be fake.
+Fast-DetectGPT criterion is 1.9299, suggesting that the text has a probability of 87% to be machine-generated.
 ```
 
 ## Workspace
