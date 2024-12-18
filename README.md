@@ -6,6 +6,7 @@
 | [OnlineDemo](http://region-9.autodl.pro:21504/)
 | [OpenReview](https://openreview.net/forum?id=Bpcgcr8E8Z)
 
+* :fire: Fast-DetectGPT can utilize GPT-3.5 and other proprietary models as its scoring model now via [Glimpse](https://github.com/baoguangsheng/glimpse).
 
 ## Brief Intro
 <table class="tg"  style="padding-left: 30px;">
