@@ -148,11 +148,11 @@ def experiment(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--output_file', type=str, default="./exp_test/results/xsum_gpt2")
+    parser.add_argument('--output_file', type=str, default="./exp_test/results/xsum_gpt-4.gpt-j-6B_gpt-neo-2.7B")  # output file prefix
     parser.add_argument('--dataset', type=str, default="xsum")
-    parser.add_argument('--dataset_file', type=str, default="./exp_test/data/xsum_gpt2")
-    parser.add_argument('--reference_model_name', type=str, default="gpt2")
-    parser.add_argument('--scoring_model_name', type=str, default="gpt2")
+    parser.add_argument('--dataset_file', type=str, default="./exp_test/data/xsum_gpt2-xl")
+    parser.add_argument('--reference_model_name', type=str, default="gpt-j-6B")    # the default setting in the paper
+    parser.add_argument('--scoring_model_name', type=str, default="gpt-neo-2.7B")  # the default setting in the paper
     parser.add_argument('--discrepancy_analytic', action='store_true')
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--device', type=str, default="cuda")
