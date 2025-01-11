@@ -13,7 +13,9 @@ import json
 from model import load_tokenizer, load_model
 from fast_detect_gpt import get_sampling_discrepancy_analytic
 
+
 # estimate the probability according to the distribution of our test results on ChatGPT and GPT-4
+# Note: The probability is only for human-friendly display. Should not be used as a classification metric because it relies on domain/model-specific reference results and the mapping from metric to probability losts information.
 class ProbEstimator:
     def __init__(self, args):
         self.real_crits = []
