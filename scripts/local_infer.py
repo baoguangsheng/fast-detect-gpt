@@ -13,41 +13,57 @@ import json
 from model import load_tokenizer, load_model
 from fast_detect_gpt import get_sampling_discrepancy_analytic
 
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
 
-# estimate the probability according to the distribution of our test results on ChatGPT and GPT-4
-# Note: The probability is only for human-friendly display. Should not be used as a classification metric because it relies on domain/model-specific reference results and the mapping from metric to probability losts information.
-class ProbEstimator:
+class FastDetectGPT:
     def __init__(self, args):
-        self.real_crits = []
-        self.fake_crits = []
-        for result_file in glob.glob(os.path.join(args.ref_path, '*.json')):
-            with open(result_file, 'r') as fin:
-                res = json.load(fin)
-                self.real_crits.extend(res['predictions']['real'])
-                self.fake_crits.extend(res['predictions']['samples'])
-        print(f'ProbEstimator: total {len(self.real_crits) * 2} samples.')
+        self.args = args
+        self.criterion_fn = get_sampling_discrepancy_analytic
+        self.scoring_tokenizer = load_tokenizer(args.scoring_model_name, args.cache_dir)
+        self.scoring_model = load_model(args.scoring_model_name, args.device, args.cache_dir)
+        self.scoring_model.eval()
+        if args.reference_model_name != args.scoring_model_name:
+            self.reference_tokenizer = load_tokenizer(args.reference_model_name, args.cache_dir)
+            self.reference_model = load_model(args.reference_model_name, args.device, args.cache_dir)
+            self.reference_model.eval()
+        # pre-calculated parameters by fitting a LogisticRegression on detection results
+        # gpt-j-6B_gpt-neo-2.7B: k: 1.87, b: -2.19, acc: 0.82
+        # gpt-neo-2.7B_gpt-neo-2.7B: k: 1.97, b: -1.47, acc: 0.83
+        # falcon-7b_falcon-7b-instruct: k: 2.42, b: -2.83, acc: 0.90
+        linear_params = {
+            'gpt-j-6B_gpt-neo-2.7B': (1.87, -2.19),
+            'gpt-neo-2.7B_gpt-neo-2.7B': (1.97, -1.47),
+            'falcon-7b_falcon-7b-instruct': (2.42, -2.83),
+        }
+        key = f'{args.reference_model_name}_{args.scoring_model_name}'
+        self.linear_k, self.linear_b = linear_params[key]
 
+    # compute conditional probability curvature
+    def compute_crit(self, text):
+        tokenized = self.scoring_tokenizer(text, truncation=True, return_tensors="pt", padding=True, return_token_type_ids=False).to(self.args.device)
+        labels = tokenized.input_ids[:, 1:]
+        with torch.no_grad():
+            logits_score = self.scoring_model(**tokenized).logits[:, :-1]
+            if self.args.reference_model_name == self.args.scoring_model_name:
+                logits_ref = logits_score
+            else:
+                tokenized = self.reference_tokenizer(text, truncation=True, return_tensors="pt", padding=True, return_token_type_ids=False).to(self.args.device)
+                assert torch.all(tokenized.input_ids[:, 1:] == labels), "Tokenizer is mismatch."
+                logits_ref = self.reference_model(**tokenized).logits[:, :-1]
+            crit = self.criterion_fn(logits_ref, logits_score, labels)
+        return crit, labels.size(1)
 
-    def crit_to_prob(self, crit):
-        offset = np.sort(np.abs(np.array(self.real_crits + self.fake_crits) - crit))[100]
-        cnt_real = np.sum((np.array(self.real_crits) > crit - offset) & (np.array(self.real_crits) < crit + offset))
-        cnt_fake = np.sum((np.array(self.fake_crits) > crit - offset) & (np.array(self.fake_crits) < crit + offset))
-        return cnt_fake / (cnt_real + cnt_fake)
+    # compute probability
+    def compute_prob(self, text):
+        crit, ntoken = self.compute_crit(text)
+        prob = sigmoid(self.linear_k * crit + self.linear_b)
+        return prob, crit, ntoken
+
 
 # run interactive local inference
 def run(args):
-    # load model
-    scoring_tokenizer = load_tokenizer(args.scoring_model_name, args.dataset, args.cache_dir)
-    scoring_model = load_model(args.scoring_model_name, args.device, args.cache_dir)
-    scoring_model.eval()
-    if args.reference_model_name != args.scoring_model_name:
-        reference_tokenizer = load_tokenizer(args.reference_model_name, args.dataset, args.cache_dir)
-        reference_model = load_model(args.reference_model_name, args.device, args.cache_dir)
-        reference_model.eval()
-    # evaluate criterion
-    name = "sampling_discrepancy_analytic"
-    criterion_fn = get_sampling_discrepancy_analytic
-    prob_estimator = ProbEstimator(args)
+    detector = FastDetectGPT(args)
     # input text
     print('Local demo for Fast-DetectGPT, where the longer text has more reliable result.')
     print('')
@@ -62,29 +78,18 @@ def run(args):
         text = "\n".join(lines)
         if len(text) == 0:
             break
-        # evaluate text
-        tokenized = scoring_tokenizer(text, truncation=True, return_tensors="pt", padding=True, return_token_type_ids=False).to(args.device)
-        labels = tokenized.input_ids[:, 1:]
-        with torch.no_grad():
-            logits_score = scoring_model(**tokenized).logits[:, :-1]
-            if args.reference_model_name == args.scoring_model_name:
-                logits_ref = logits_score
-            else:
-                tokenized = reference_tokenizer(text, truncation=True, return_tensors="pt", padding=True, return_token_type_ids=False).to(args.device)
-                assert torch.all(tokenized.input_ids[:, 1:] == labels), "Tokenizer is mismatch."
-                logits_ref = reference_model(**tokenized).logits[:, :-1]
-            crit = criterion_fn(logits_ref, logits_score, labels)
         # estimate the probability of machine generated text
-        prob = prob_estimator.crit_to_prob(crit)
+        prob, crit, ntokens = detector.compute_prob(text)
         print(f'Fast-DetectGPT criterion is {crit:.4f}, suggesting that the text has a probability of {prob * 100:.0f}% to be machine-generated.')
         print()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--reference_model_name', type=str, default="gpt-neo-2.7B")  # use gpt-j-6B for more accurate detection
+    # use gpt-neo-2.7B/gpt-neo-2.7B for faster detection
+    # use gpt-j-6B/gpt-neo-2.7B for the official setting in the paper
+    # use falcon-7b/falcon-7b-instruct for the best detection accuracy
+    parser.add_argument('--reference_model_name', type=str, default="gpt-neo-2.7B")
     parser.add_argument('--scoring_model_name', type=str, default="gpt-neo-2.7B")
-    parser.add_argument('--dataset', type=str, default="xsum")
-    parser.add_argument('--ref_path', type=str, default="./local_infer_ref")
     parser.add_argument('--device', type=str, default="cuda")
     parser.add_argument('--cache_dir', type=str, default="../cache")
     args = parser.parse_args()
