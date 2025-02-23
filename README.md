@@ -7,6 +7,7 @@
 | [OpenReview](https://openreview.net/forum?id=Bpcgcr8E8Z)
 
 * :fire: Fast-DetectGPT can utilize GPT-3.5 and other proprietary models as its scoring model now via [Glimpse](https://github.com/baoguangsheng/glimpse).
+* So far the best sampling/scoring models we found for Fast-DetectGPT are falcon-7b/falcon-7b-instruct.
 
 ## Brief Intro
 <table class="tg"  style="padding-left: 30px;">
