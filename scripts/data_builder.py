@@ -40,7 +40,7 @@ def load_data(input_file):
 class DataBuilder:
     def __init__(self, args):
         self.args = args
-        self.base_tokenizer = load_tokenizer(args.base_model_name, args.dataset, args.cache_dir)
+        self.base_tokenizer = load_tokenizer(args.base_model_name, args.cache_dir)
         self.base_model = None if args.openai_model else load_model(args.base_model_name, args.device, args.cache_dir)
 
     def _openai_sample(self, prefix):

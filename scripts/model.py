@@ -50,16 +50,13 @@ def load_model(model_name, device, cache_dir):
     print(f'DONE ({time.time() - start:.2f}s)')
     return model
 
-def load_tokenizer(model_name, for_dataset, cache_dir):
+def load_tokenizer(model_name, cache_dir):
     model_fullname = get_model_fullname(model_name)
     optional_tok_kwargs = {}
     if "facebook/opt-" in model_fullname:
         print("Using non-fast tokenizer for OPT")
         optional_tok_kwargs['fast'] = False
-    if for_dataset in ['pubmed']:
-        optional_tok_kwargs['padding_side'] = 'left'
-    else:
-        optional_tok_kwargs['padding_side'] = 'right'
+    optional_tok_kwargs['padding_side'] = 'right'
     base_tokenizer = from_pretrained(AutoTokenizer, model_fullname, optional_tok_kwargs, cache_dir=cache_dir)
     if base_tokenizer.pad_token_id is None:
         base_tokenizer.pad_token_id = base_tokenizer.eos_token_id

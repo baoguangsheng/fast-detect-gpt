@@ -75,7 +75,7 @@ def experiment(args):
     scoring_model = load_model(args.scoring_model_name, args.device, args.cache_dir)
     scoring_model.eval()
     if args.reference_model_name != args.scoring_model_name:
-        reference_tokenizer = load_tokenizer(args.reference_model_name, args.dataset, args.cache_dir)
+        reference_tokenizer = load_tokenizer(args.reference_model_name, args.cache_dir)
         reference_model = load_model(args.reference_model_name, args.device, args.cache_dir)
         reference_model.eval()
     # load data

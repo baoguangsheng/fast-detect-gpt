@@ -69,7 +69,7 @@ def get_npr(args, scoring_model, scoring_tokenizer, text, perturbs):
 
 def experiment(args):
     # load model
-    scoring_tokenizer = load_tokenizer(args.scoring_model_name, args.dataset, args.cache_dir)
+    scoring_tokenizer = load_tokenizer(args.scoring_model_name, args.cache_dir)
     scoring_model = load_model(args.scoring_model_name, args.device, args.cache_dir)
     scoring_model.eval()
     # load data

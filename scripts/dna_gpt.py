@@ -22,7 +22,7 @@ import custom_datasets
 class PrefixSampler:
     def __init__(self, args):
         self.args = args
-        self.base_tokenizer = load_tokenizer(args.base_model_name, args.dataset, args.cache_dir)
+        self.base_tokenizer = load_tokenizer(args.base_model_name, args.cache_dir)
         self.base_model = load_model(args.base_model_name, args.device, args.cache_dir)
 
     def _sample_from_model(self, texts, min_words=55, truncate_ratio=0.5):

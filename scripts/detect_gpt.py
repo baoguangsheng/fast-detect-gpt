@@ -192,7 +192,7 @@ def experiment(args):
     else:
         generate_perturbs(args)
     # load model
-    scoring_tokenizer = load_tokenizer(args.scoring_model_name, args.dataset, args.cache_dir)
+    scoring_tokenizer = load_tokenizer(args.scoring_model_name, args.cache_dir)
     scoring_model = load_model(args.scoring_model_name, 'cpu', args.cache_dir)
     scoring_model.eval()
     scoring_model.to(args.device)
