@@ -47,7 +47,7 @@ for M in $source_models; do
     for S in $settings; do
       IFS=':' read -r -a S <<< $S && M1=${S[0]} && M2=${S[1]}
       echo `date`, Evaluating Fast-DetectGPT on ${D}_${M}.${M1}_${M2} ...
-      python scripts/fast_detect_gpt.py --reference_model_name $M1 --scoring_model_name $M2 --discrepancy_analytic \
+      python scripts/fast_detect_gpt.py --sampling_model_name $M1 --scoring_model_name $M2 --discrepancy_analytic \
                           --dataset $D --dataset_file $data_path/${D}_${M} --output_file $res_path/${D}_${M}.${M1}_${M2}
     done
   done

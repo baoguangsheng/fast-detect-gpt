@@ -51,6 +51,6 @@ done
 for P in "english:mgpt" "german:mgpt" "pubmed:pubmedgpt" "xsum:gpt2-xl"; do
   IFS=':' read -r -a P <<< $P && D=${P[0]} && M=${P[1]}
   echo `date`, Evaluating Fast-DetectGPT on ${D}-${M} ...
-  python scripts/fast_detect_gpt.py --reference_model_name $M --scoring_model_name $M \
+  python scripts/fast_detect_gpt.py --sampling_model_name $M --scoring_model_name $M \
                       --dataset $D --dataset_file $data_path/${D}_${M} --output_file $res_path/${D}_${M}
 done

@@ -33,7 +33,7 @@ echo `date`, Evaluate models in the white-box setting:
 for D in $datasets; do
   for M in $source_models; do
     echo `date`, Evaluating Fast-DetectGPT on ${D}_${M} ...
-    python scripts/fast_detect_gpt.py --reference_model_name $M --scoring_model_name $M --dataset $D \
+    python scripts/fast_detect_gpt.py --sampling_model_name $M --scoring_model_name $M --dataset $D \
                           --dataset_file $data_path/${D}_${M} --output_file $res_path/${D}_${M}
 
     echo `date`, Evaluating baseline methods on ${D}_${M} ...
@@ -66,7 +66,7 @@ for D in $datasets; do
     M1=gpt-j-6B  # sampling model
     for M2 in $scoring_models; do
       echo `date`, Evaluating Fast-DetectGPT on ${D}_${M}.${M1}_${M2} ...
-      python scripts/fast_detect_gpt.py --reference_model_name ${M1} --scoring_model_name ${M2} --dataset $D \
+      python scripts/fast_detect_gpt.py --sampling_model_name ${M1} --scoring_model_name ${M2} --dataset $D \
                           --dataset_file $data_path/${D}_${M} --output_file $res_path/${D}_${M}.${M1}_${M2}
     done
   done

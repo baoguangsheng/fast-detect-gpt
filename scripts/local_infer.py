@@ -23,10 +23,10 @@ class FastDetectGPT:
         self.scoring_tokenizer = load_tokenizer(args.scoring_model_name, args.cache_dir)
         self.scoring_model = load_model(args.scoring_model_name, args.device, args.cache_dir)
         self.scoring_model.eval()
-        if args.reference_model_name != args.scoring_model_name:
-            self.reference_tokenizer = load_tokenizer(args.reference_model_name, args.cache_dir)
-            self.reference_model = load_model(args.reference_model_name, args.device, args.cache_dir)
-            self.reference_model.eval()
+        if args.sampling_model_name != args.scoring_model_name:
+            self.reference_tokenizer = load_tokenizer(args.sampling_model_name, args.cache_dir)
+            self.sampling_model = load_model(args.sampling_model_name, args.device, args.cache_dir)
+            self.sampling_model.eval()
         # pre-calculated parameters by fitting a LogisticRegression on detection results
         # gpt-j-6B_gpt-neo-2.7B: k: 1.87, b: -2.19, acc: 0.82
         # gpt-neo-2.7B_gpt-neo-2.7B: k: 1.97, b: -1.47, acc: 0.83
@@ -36,7 +36,7 @@ class FastDetectGPT:
             'gpt-neo-2.7B_gpt-neo-2.7B': (1.97, -1.47),
             'falcon-7b_falcon-7b-instruct': (2.42, -2.83),
         }
-        key = f'{args.reference_model_name}_{args.scoring_model_name}'
+        key = f'{args.sampling_model_name}_{args.scoring_model_name}'
         self.linear_k, self.linear_b = linear_params[key]
 
     # compute conditional probability curvature
@@ -45,12 +45,12 @@ class FastDetectGPT:
         labels = tokenized.input_ids[:, 1:]
         with torch.no_grad():
             logits_score = self.scoring_model(**tokenized).logits[:, :-1]
-            if self.args.reference_model_name == self.args.scoring_model_name:
+            if self.args.sampling_model_name == self.args.scoring_model_name:
                 logits_ref = logits_score
             else:
                 tokenized = self.reference_tokenizer(text, truncation=True, return_tensors="pt", padding=True, return_token_type_ids=False).to(self.args.device)
                 assert torch.all(tokenized.input_ids[:, 1:] == labels), "Tokenizer is mismatch."
-                logits_ref = self.reference_model(**tokenized).logits[:, :-1]
+                logits_ref = self.sampling_model(**tokenized).logits[:, :-1]
             crit = self.criterion_fn(logits_ref, logits_score, labels)
         return crit, labels.size(1)
 
@@ -88,7 +88,7 @@ if __name__ == '__main__':
     # use gpt-neo-2.7B/gpt-neo-2.7B for faster detection
     # use gpt-j-6B/gpt-neo-2.7B for the official setting in the paper
     # use falcon-7b/falcon-7b-instruct for the best detection accuracy
-    parser.add_argument('--reference_model_name', type=str, default="gpt-neo-2.7B")
+    parser.add_argument('--sampling_model_name', type=str, default="gpt-neo-2.7B")
     parser.add_argument('--scoring_model_name', type=str, default="gpt-neo-2.7B")
     parser.add_argument('--device', type=str, default="cuda")
     parser.add_argument('--cache_dir', type=str, default="../cache")

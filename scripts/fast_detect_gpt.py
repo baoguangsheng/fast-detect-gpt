@@ -74,10 +74,10 @@ def experiment(args):
     scoring_tokenizer = load_tokenizer(args.scoring_model_name, args.dataset, args.cache_dir)
     scoring_model = load_model(args.scoring_model_name, args.device, args.cache_dir)
     scoring_model.eval()
-    if args.reference_model_name != args.scoring_model_name:
-        reference_tokenizer = load_tokenizer(args.reference_model_name, args.cache_dir)
-        reference_model = load_model(args.reference_model_name, args.device, args.cache_dir)
-        reference_model.eval()
+    if args.sampling_model_name != args.scoring_model_name:
+        reference_tokenizer = load_tokenizer(args.sampling_model_name, args.cache_dir)
+        sampling_model = load_model(args.sampling_model_name, args.device, args.cache_dir)
+        sampling_model.eval()
     # load data
     data = load_data(args.dataset_file)
     n_samples = len(data["sampled"])
@@ -101,24 +101,24 @@ def experiment(args):
         labels = tokenized.input_ids[:, 1:]
         with torch.no_grad():
             logits_score = scoring_model(**tokenized).logits[:, :-1]
-            if args.reference_model_name == args.scoring_model_name:
+            if args.sampling_model_name == args.scoring_model_name:
                 logits_ref = logits_score
             else:
                 tokenized = reference_tokenizer(original_text, return_tensors="pt", padding=True, return_token_type_ids=False).to(args.device)
                 assert torch.all(tokenized.input_ids[:, 1:] == labels), "Tokenizer is mismatch."
-                logits_ref = reference_model(**tokenized).logits[:, :-1]
+                logits_ref = sampling_model(**tokenized).logits[:, :-1]
             original_crit = criterion_fn(logits_ref, logits_score, labels)
         # sampled text
         tokenized = scoring_tokenizer(sampled_text, return_tensors="pt", padding=True, return_token_type_ids=False).to(args.device)
         labels = tokenized.input_ids[:, 1:]
         with torch.no_grad():
             logits_score = scoring_model(**tokenized).logits[:, :-1]
-            if args.reference_model_name == args.scoring_model_name:
+            if args.sampling_model_name == args.scoring_model_name:
                 logits_ref = logits_score
             else:
                 tokenized = reference_tokenizer(sampled_text, return_tensors="pt", padding=True, return_token_type_ids=False).to(args.device)
                 assert torch.all(tokenized.input_ids[:, 1:] == labels), "Tokenizer is mismatch."
-                logits_ref = reference_model(**tokenized).logits[:, :-1]
+                logits_ref = sampling_model(**tokenized).logits[:, :-1]
             sampled_crit = criterion_fn(logits_ref, logits_score, labels)
         # result
         results.append({"original": original_text,
@@ -151,7 +151,7 @@ if __name__ == '__main__':
     parser.add_argument('--output_file', type=str, default="./exp_test/results/xsum_gpt-4.gpt-j-6B_gpt-neo-2.7B")  # output file prefix
     parser.add_argument('--dataset', type=str, default="xsum")
     parser.add_argument('--dataset_file', type=str, default="./exp_test/data/xsum_gpt2-xl")
-    parser.add_argument('--reference_model_name', type=str, default="gpt-j-6B")    # the default setting in the paper
+    parser.add_argument('--sampling_model_name', type=str, default="gpt-j-6B")    # the default setting in the paper
     parser.add_argument('--scoring_model_name', type=str, default="gpt-neo-2.7B")  # the default setting in the paper
     parser.add_argument('--discrepancy_analytic', action='store_true')
     parser.add_argument('--seed', type=int, default=0)
