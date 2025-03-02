@@ -47,7 +47,7 @@ Please run following command locally for an interactive demo:
 ```
 python scripts/local_infer.py
 ```
-where the default reference and sampling models are both gpt-neo-2.7B.
+where the default sampling and scoring models are both gpt-neo-2.7B.
 
 We could use gpt-j-6B as the sampling model to obtain more accurate detections:
 ```

@@ -75,7 +75,7 @@ def experiment(args):
     scoring_model = load_model(args.scoring_model_name, args.device, args.cache_dir)
     scoring_model.eval()
     if args.sampling_model_name != args.scoring_model_name:
-        reference_tokenizer = load_tokenizer(args.sampling_model_name, args.cache_dir)
+        sampling_tokenizer = load_tokenizer(args.sampling_model_name, args.cache_dir)
         sampling_model = load_model(args.sampling_model_name, args.device, args.cache_dir)
         sampling_model.eval()
     # load data
@@ -104,7 +104,7 @@ def experiment(args):
             if args.sampling_model_name == args.scoring_model_name:
                 logits_ref = logits_score
             else:
-                tokenized = reference_tokenizer(original_text, return_tensors="pt", padding=True, return_token_type_ids=False).to(args.device)
+                tokenized = sampling_tokenizer(original_text, return_tensors="pt", padding=True, return_token_type_ids=False).to(args.device)
                 assert torch.all(tokenized.input_ids[:, 1:] == labels), "Tokenizer is mismatch."
                 logits_ref = sampling_model(**tokenized).logits[:, :-1]
             original_crit = criterion_fn(logits_ref, logits_score, labels)
@@ -116,7 +116,7 @@ def experiment(args):
             if args.sampling_model_name == args.scoring_model_name:
                 logits_ref = logits_score
             else:
-                tokenized = reference_tokenizer(sampled_text, return_tensors="pt", padding=True, return_token_type_ids=False).to(args.device)
+                tokenized = sampling_tokenizer(sampled_text, return_tensors="pt", padding=True, return_token_type_ids=False).to(args.device)
                 assert torch.all(tokenized.input_ids[:, 1:] == labels), "Tokenizer is mismatch."
                 logits_ref = sampling_model(**tokenized).logits[:, :-1]
             sampled_crit = criterion_fn(logits_ref, logits_score, labels)

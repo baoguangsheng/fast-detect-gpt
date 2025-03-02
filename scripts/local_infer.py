@@ -24,7 +24,7 @@ class FastDetectGPT:
         self.scoring_model = load_model(args.scoring_model_name, args.device, args.cache_dir)
         self.scoring_model.eval()
         if args.sampling_model_name != args.scoring_model_name:
-            self.reference_tokenizer = load_tokenizer(args.sampling_model_name, args.cache_dir)
+            self.sampling_tokenizer = load_tokenizer(args.sampling_model_name, args.cache_dir)
             self.sampling_model = load_model(args.sampling_model_name, args.device, args.cache_dir)
             self.sampling_model.eval()
         # pre-calculated parameters by fitting a LogisticRegression on detection results
@@ -48,7 +48,7 @@ class FastDetectGPT:
             if self.args.sampling_model_name == self.args.scoring_model_name:
                 logits_ref = logits_score
             else:
-                tokenized = self.reference_tokenizer(text, truncation=True, return_tensors="pt", padding=True, return_token_type_ids=False).to(self.args.device)
+                tokenized = self.sampling_tokenizer(text, truncation=True, return_tensors="pt", padding=True, return_token_type_ids=False).to(self.args.device)
                 assert torch.all(tokenized.input_ids[:, 1:] == labels), "Tokenizer is mismatch."
                 logits_ref = self.sampling_model(**tokenized).logits[:, :-1]
             crit = self.criterion_fn(logits_ref, logits_score, labels)
