@@ -27,7 +27,7 @@ class FastDetectGPT:
             self.sampling_tokenizer = load_tokenizer(args.sampling_model_name, args.cache_dir)
             self.sampling_model = load_model(args.sampling_model_name, args.device, args.cache_dir)
             self.sampling_model.eval()
-        # pre-calculated parameters by fitting a LogisticRegression on detection results
+        # pre-calculated parameters by fitting a LogisticRegression on Fast-Detect criteria from a development set.
         # gpt-j-6B_gpt-neo-2.7B: k: 1.87, b: -2.19, acc: 0.82
         # gpt-neo-2.7B_gpt-neo-2.7B: k: 1.97, b: -1.47, acc: 0.83
         # falcon-7b_falcon-7b-instruct: k: 2.42, b: -2.83, acc: 0.90
