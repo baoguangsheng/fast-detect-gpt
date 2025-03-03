@@ -27,7 +27,9 @@ class FastDetectGPT:
             self.sampling_tokenizer = load_tokenizer(args.sampling_model_name, args.cache_dir)
             self.sampling_model = load_model(args.sampling_model_name, args.device, args.cache_dir)
             self.sampling_model.eval()
-        # pre-calculated parameters by fitting a LogisticRegression on Fast-Detect criteria from a development set.
+        # To obtain probability values that are easy for users to understand, a simple linear and sigmoid function is used to map detection metrics to the (0,1) range.
+        # This is a one-to-one mapping and doesn't alter the detection accuracy of the metrics. Specifically, we use a development set to obtain a group of (metric, positive/negative label) pairs.
+        # We fit the function as a binary classifier on the pairs to obtain the parameters k and b.
         # gpt-j-6B_gpt-neo-2.7B: k: 1.87, b: -2.19, acc: 0.82
         # gpt-neo-2.7B_gpt-neo-2.7B: k: 1.97, b: -1.47, acc: 0.83
         # falcon-7b_falcon-7b-instruct: k: 2.42, b: -2.83, acc: 0.90
