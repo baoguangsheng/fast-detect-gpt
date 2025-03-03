@@ -36,7 +36,7 @@ class FastDetectGPT:
         linear_params = {
             'gpt-j-6B_gpt-neo-2.7B': (1.87, -2.19),
             'gpt-neo-2.7B_gpt-neo-2.7B': (1.97, -1.47),
-            'falcon-7b_falcon-7b-instruct': (2.42, -2.83),
+            'falcon-7b_falcon-7b-instruct': (1.45, -1.70),
         }
         key = f'{args.sampling_model_name}_{args.scoring_model_name}'
         self.linear_k, self.linear_b = linear_params[key]
