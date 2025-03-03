@@ -32,7 +32,7 @@ class FastDetectGPT:
         # We fit the function as a binary classifier on the pairs to obtain the parameters k and b.
         # gpt-j-6B_gpt-neo-2.7B: k: 1.87, b: -2.19, acc: 0.82
         # gpt-neo-2.7B_gpt-neo-2.7B: k: 1.97, b: -1.47, acc: 0.83
-        # falcon-7b_falcon-7b-instruct: k: 2.42, b: -2.83, acc: 0.90
+        # falcon-7b_falcon-7b-instruct: k: 1.45, b: -1.70, acc: 0.90
         linear_params = {
             'gpt-j-6B_gpt-neo-2.7B': (1.87, -2.19),
             'gpt-neo-2.7B_gpt-neo-2.7B': (1.97, -1.47),
