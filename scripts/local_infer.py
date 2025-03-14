@@ -34,10 +34,10 @@ class FastDetectGPT:
             self.sampling_tokenizer = load_tokenizer(args.sampling_model_name, args.cache_dir)
             self.sampling_model = load_model(args.sampling_model_name, args.device, args.cache_dir)
             self.sampling_model.eval()
-        # To obtain probability values that are easy for users to understand,
-        # we assume normal distributions of the criteria, which are defined
-        # by mu0 and sigma0 for human texts and by mu1 and sigma1 for AI texts.
-        # We set sigma1 = 2 * sigma0 to make sure of a wider coverage of potential AI texts.
+        # To obtain probability values that are easy for users to understand, we assume normal distributions
+        # of the criteria and statistic the parameters on a group of dev samples. The normal distributions are defined
+        # by mu0 and sigma0 for human texts and by mu1 and sigma1 for AI texts. We set sigma1 = 2 * sigma0 to
+        # make sure of a wider coverage of potential AI texts.
         # Note: the probability could be high on both left side and right side of Normal(mu0, sigma0).
         #   gpt-j-6B_gpt-neo-2.7B: mu0: 0.2713, sigma0: 0.9366, mu1: 2.2334, sigma1: 1.8731, acc:0.8122
         #   gpt-neo-2.7B_gpt-neo-2.7B: mu0: -0.2489, sigma0: 0.9968, mu1: 1.8983, sigma1: 1.9935, acc:0.8222
