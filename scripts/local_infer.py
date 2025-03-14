@@ -15,8 +15,8 @@ from fast_detect_gpt import get_sampling_discrepancy_analytic
 from scipy.stats import norm
 
 
-# Considering balanced classification that p(D1) equals to p(D2), we have
-#   p(D1|x) = p(x|D1) / (p(x|D1) + p(x|D2))
+# Considering balanced classification that p(D0) equals to p(D1), we have
+#   p(D1|x) = p(x|D1) / (p(x|D1) + p(x|D0))
 def compute_prob_norm(x, mu0, sigma0, mu1, sigma1):
     pdf_value0 = norm.pdf(x, loc=mu0, scale=sigma0)
     pdf_value1 = norm.pdf(x, loc=mu1, scale=sigma1)
