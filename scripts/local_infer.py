@@ -12,9 +12,16 @@ import argparse
 import json
 from model import load_tokenizer, load_model
 from fast_detect_gpt import get_sampling_discrepancy_analytic
+from scipy.stats import norm
 
-def sigmoid(x):
-    return 1 / (1 + np.exp(-x))
+
+# Considering balanced classification that p(D1) equals to p(D2), we have
+#   p(D1|x) = p(x|D1) / (p(x|D1) + p(x|D2))
+def compute_prob_norm(x, mu0, sigma0, mu1, sigma1):
+    pdf_value0 = norm.pdf(x, loc=mu0, scale=sigma0)
+    pdf_value1 = norm.pdf(x, loc=mu1, scale=sigma1)
+    prob = pdf_value1 / (pdf_value0 + pdf_value1)
+    return prob
 
 class FastDetectGPT:
     def __init__(self, args):
@@ -27,19 +34,21 @@ class FastDetectGPT:
             self.sampling_tokenizer = load_tokenizer(args.sampling_model_name, args.cache_dir)
             self.sampling_model = load_model(args.sampling_model_name, args.device, args.cache_dir)
             self.sampling_model.eval()
-        # To obtain probability values that are easy for users to understand, a simple linear and sigmoid function is used to map detection metrics to the (0,1) range.
-        # This is a one-to-one mapping and doesn't alter the detection accuracy of the metrics. Specifically, we use a development set to obtain a group of (metric, positive/negative label) pairs.
-        # We fit the function as a binary classifier on the pairs to obtain the parameters k and b.
-        # gpt-j-6B_gpt-neo-2.7B: k: 1.87, b: -2.19, acc: 0.82
-        # gpt-neo-2.7B_gpt-neo-2.7B: k: 1.97, b: -1.47, acc: 0.83
-        # falcon-7b_falcon-7b-instruct: k: 1.45, b: -1.70, acc: 0.90
-        linear_params = {
-            'gpt-j-6B_gpt-neo-2.7B': (1.87, -2.19),
-            'gpt-neo-2.7B_gpt-neo-2.7B': (1.97, -1.47),
-            'falcon-7b_falcon-7b-instruct': (1.45, -1.70),
+        # To obtain probability values that are easy for users to understand,
+        # we assume normal distributions of the criteria, which are defined
+        # by mu0 and sigma0 for human texts and by mu1 and sigma1 for AI texts.
+        # We set sigma1 = 2 * sigma0 to make sure of a wider coverage of potential AI texts.
+        # Note: the probability could be high on both left side and right side of Normal(mu0, sigma0).
+        #   gpt-j-6B_gpt-neo-2.7B: mu0: 0.2713, sigma0: 0.9366, mu1: 2.2334, sigma1: 1.8731, acc:0.8122
+        #   gpt-neo-2.7B_gpt-neo-2.7B: mu0: -0.2489, sigma0: 0.9968, mu1: 1.8983, sigma1: 1.9935, acc:0.8222
+        #   falcon-7b_falcon-7b-instruct: mu0: -0.0707, sigma0: 0.9520, mu1: 2.9306, sigma1: 1.9039, acc:0.8938
+        distrib_params = {
+            'gpt-j-6B_gpt-neo-2.7B': {'mu0': 0.2713, 'sigma0': 0.9366, 'mu1': 2.2334, 'sigma1': 1.8731},
+            'gpt-neo-2.7B_gpt-neo-2.7B': {'mu0': -0.2489, 'sigma0': 0.9968, 'mu1': 1.8983, 'sigma1': 1.9935},
+            'falcon-7b_falcon-7b-instruct': {'mu0': -0.0707, 'sigma0': 0.9520, 'mu1': 2.9306, 'sigma1': 1.9039},
         }
         key = f'{args.sampling_model_name}_{args.scoring_model_name}'
-        self.linear_k, self.linear_b = linear_params[key]
+        self.classifier = distrib_params[key]
 
     # compute conditional probability curvature
     def compute_crit(self, text):
@@ -59,7 +68,11 @@ class FastDetectGPT:
     # compute probability
     def compute_prob(self, text):
         crit, ntoken = self.compute_crit(text)
-        prob = sigmoid(self.linear_k * crit + self.linear_b)
+        mu0 = self.classifier['mu0']
+        sigma0 = self.classifier['sigma0']
+        mu1 = self.classifier['mu1']
+        sigma1 = self.classifier['sigma1']
+        prob = compute_prob_norm(crit, mu0, sigma0, mu1, sigma1)
         return prob, crit, ntoken
 
 
