@@ -3,7 +3,7 @@
 
 [Paper](https://arxiv.org/abs/2310.05130) 
 | [LocalDemo](#local-demo)
-| [OnlineDemo](http://region-9.autodl.pro:21504/)
+| [OnlineDemo](https://aidetect.lab.westlake.edu.cn/)
 | [OpenReview](https://openreview.net/forum?id=Bpcgcr8E8Z)
 
 * :fire: API support is launched. Please check the [API page](http://region-9.autodl.pro:21504/#/apidoc) in the demo.
