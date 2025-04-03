@@ -100,11 +100,8 @@ def run(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    # use gpt-neo-2.7B/gpt-neo-2.7B for faster detection
-    # use gpt-j-6B/gpt-neo-2.7B for the official setting in the paper
-    # use falcon-7b/falcon-7b-instruct for the best detection accuracy
-    parser.add_argument('--sampling_model_name', type=str, default="gpt-neo-2.7B")
-    parser.add_argument('--scoring_model_name', type=str, default="gpt-neo-2.7B")
+    parser.add_argument('--sampling_model_name', type=str, default="falcon-7b")
+    parser.add_argument('--scoring_model_name', type=str, default="falcon-7b-instruct")
     parser.add_argument('--device', type=str, default="cuda")
     parser.add_argument('--cache_dir', type=str, default="../cache")
     args = parser.parse_args()
