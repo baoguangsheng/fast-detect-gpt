@@ -6,6 +6,7 @@
 | [OnlineDemo](https://aidetect.lab.westlake.edu.cn/)
 | [OpenReview](https://openreview.net/forum?id=Bpcgcr8E8Z)
 
+* <span style="color: red;">The demo server is facing a hardware problem, and we are actively working on a solution.</span>
 * :fire: API support is launched. Please check the [API page](https://aidetect.lab.westlake.edu.cn/#/apidoc) in the demo.
 * :fire: Fast-DetectGPT can utilize GPT-3.5 and other proprietary models as its scoring model now via [Glimpse](https://github.com/baoguangsheng/glimpse).
 * :fire: So far the best sampling/scoring models we found for Fast-DetectGPT are falcon-7b/falcon-7b-instruct.
