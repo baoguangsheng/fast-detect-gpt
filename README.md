@@ -3,11 +3,11 @@
 
 [Paper](https://arxiv.org/abs/2310.05130) 
 | [LocalDemo](#local-demo)
-| [OnlineDemo](https://aidetect.lab.westlake.edu.cn/)
+| [OnlineDemo](https://fastdetect.net/)
 | [OpenReview](https://openreview.net/forum?id=Bpcgcr8E8Z)
 
-* 9/4/2025: <font color='red'>The demo server is facing a hardware problem, and we are actively working on a solution...</font>
-* :fire: API support is launched. Please check the [API page](https://aidetect.lab.westlake.edu.cn/#/apidoc) in the demo.
+* 9/13/2025: We have recover the demo at https://fastdetect.net.
+* :fire: API support is launched. Please check the [API page](https://fastdetect.net/#/apidoc) in the demo.
 * :fire: Fast-DetectGPT can utilize GPT-3.5 and other proprietary models as its scoring model now via [Glimpse](https://github.com/baoguangsheng/glimpse).
 * :fire: So far the best sampling/scoring models we found for Fast-DetectGPT are falcon-7b/falcon-7b-instruct.
 
