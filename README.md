@@ -6,10 +6,11 @@
 | [OnlineDemo](https://fastdetect.net/)
 | [OpenReview](https://openreview.net/forum?id=Bpcgcr8E8Z)
 
+* 1/31/2026: We find that Fast-DetectGPT with Llama3-8B/Llama3-8B-Instruct as the sampling/scoring models substantially outperforms falcon-7b/falcon-7b-instruct, especially on LRM-generated texts. We provide demo online.
 * 9/13/2025: We have recover the demo at https://fastdetect.net.
 * :fire: API support is launched. Please check the [API page](https://fastdetect.net/#/apidoc) in the demo.
 * :fire: Fast-DetectGPT can utilize GPT-3.5 and other proprietary models as its scoring model now via [Glimpse](https://github.com/baoguangsheng/glimpse).
-* :fire: So far the best sampling/scoring models we found for Fast-DetectGPT are falcon-7b/falcon-7b-instruct.
+
 
 ## Brief Intro
 <table class="tg"  style="padding-left: 30px;">
