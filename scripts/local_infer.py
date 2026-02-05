@@ -46,6 +46,7 @@ class FastDetectGPT:
             'gpt-j-6B_gpt-neo-2.7B': {'mu0': 0.2713, 'sigma0': 0.9366, 'mu1': 2.2334, 'sigma1': 1.8731},
             'gpt-neo-2.7B_gpt-neo-2.7B': {'mu0': -0.2489, 'sigma0': 0.9968, 'mu1': 1.8983, 'sigma1': 1.9935},
             'falcon-7b_falcon-7b-instruct': {'mu0': -0.0707, 'sigma0': 0.9520, 'mu1': 2.9306, 'sigma1': 1.9039},
+            'llama3-8b_llama3-8b-instruct': {'mu0': 0.1603, 'sigma0': 1.0791, 'mu1': 2.4686, 'sigma1': 2.1582},
         }
         key = f'{args.sampling_model_name}_{args.scoring_model_name}'
         self.classifier = distrib_params[key]
@@ -107,6 +108,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     run(args)
+
 
 
 
