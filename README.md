@@ -10,7 +10,7 @@
 * 9/13/2025: We have recover the demo at https://fastdetect.net.
 * :fire: API support is launched. Please check the [API page](https://fastdetect.net/#/apidoc) in the demo.
 * :fire: Fast-DetectGPT can utilize GPT-3.5 and other proprietary models as its scoring model now via [Glimpse](https://github.com/baoguangsheng/glimpse).
-
+* :fire: Llama3-8B/Llama3-8B-Instruct > falcon-7b/falcon-7b-instruct >> gpt-j-6B/gpt-neo-2.7B, as the sampling/scoring models.
 
 ## Brief Intro
 <table class="tg"  style="padding-left: 30px;">
